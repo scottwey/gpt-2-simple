@@ -41,10 +41,10 @@ def download_file_with_progress(url_base, sub_dir, model_name, file_name):
     file_name : str
         name of file to get e.g. "hparams.json"
     sub_dir: str
-        subdirectory inside which to get and copy locally eg. "models/124M" 
+        subdirectory inside which to get and copy locally eg. "models/124M"
         no trailing slash
     url_base : str
-        Start of URL location specifying server and any base directories no 
+        Start of URL location specifying server and any base directories no
         trailing slash
         e.g. "https://storage.googleapis.com/gpt-2"
     """
@@ -72,8 +72,8 @@ def download_gpt2(model_dir='models', model_name='124M'):
         parent directory of model to download
 
     model_name : str
-        name of the GPT-2 model to download. 
-        As of 22 May 2019 one of "124M" or "355M" but may later include other 
+        name of the GPT-2 model to download.
+        As of 22 May 2019 one of "124M" or "355M" but may later include other
         model sizes
 
     Adapted from https://github.com/openai/gpt-2/blob/master/download_model.py
@@ -223,6 +223,9 @@ def finetune(sess,
     elif optimizer == 'sgd':
         opt = tf.compat.v1.train.GradientDescentOptimizer(
             learning_rate=learning_rate)
+
+    opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(
+        opt, loss_scale='dynamic')
 
     if accumulate_gradients > 1:
         if use_memory_saving_gradients:
