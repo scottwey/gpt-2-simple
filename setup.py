@@ -59,7 +59,7 @@ setup(
     classifiers=[],
     license='MIT',
     entry_points={
-        'console_scripts': ['gpt_2_simple=gpt_2_simple.gpt_2:cmd'],
+        'console_scripts': ['gpt_2_simple_amp=gpt_2_simple_amp.gpt_2:cmd'],
     },
     python_requires='>=3.5',
     include_package_data=True,
