@@ -45,8 +45,8 @@ NB: *Restart the Python session first* if you want to finetune on another datase
 
 
 setup(
-    name='gpt_2_simple',
-    packages=['gpt_2_simple'],  # this must be the same as the name above
+    name='gpt_2_simple_amp',
+    packages=['gpt_2_simple_amp'],  # this must be the same as the name above
     version='0.7',
     description="Python package to easily retrain OpenAI's GPT-2 " \
     "text-generating model on new texts.",
