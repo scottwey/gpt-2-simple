@@ -157,8 +157,8 @@ def finetune(sess,
     See that file for parameter definitions.
     """
 
-    assert model_name not in [
-        '774M', '1558M'] or multi_gpu, "Currently, a modern single GPU cannot finetune the 774M GPT-2 model or larger."
+    # assert model_name not in [
+    #     '774M', '1558M'] or multi_gpu, "Currently, a modern single GPU cannot finetune the 774M GPT-2 model or larger."
 
     SAMPLE_DIR = 'samples'
 
@@ -224,7 +224,7 @@ def finetune(sess,
         opt = tf.compat.v1.train.GradientDescentOptimizer(
             learning_rate=learning_rate)
 
-    opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(
+    opt = tf.compat.v1.train.experimental.enable_mixed_precision_graph_rewrite(
         opt, loss_scale='dynamic')
 
     if accumulate_gradients > 1:
