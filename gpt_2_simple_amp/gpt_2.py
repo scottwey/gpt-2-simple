@@ -189,10 +189,10 @@ def finetune(sess,
         raise ValueError(
             "Can't get samples longer than window size: %s" % hparams.n_ctx)
 
-    if model_name not in ['117M', '124M']:
-        use_memory_saving_gradients = True
-        only_train_transformer_layers = True
-        accumulate_gradients = 1
+    # if model_name not in ['117M', '124M']:
+    #     use_memory_saving_gradients = True
+    #     only_train_transformer_layers = True
+    #     accumulate_gradients = 1
 
     context = tf.compat.v1.placeholder(tf.int32, [batch_size, None])
     gpus = []
@@ -224,9 +224,6 @@ def finetune(sess,
         opt = tf.compat.v1.train.GradientDescentOptimizer(
             learning_rate=learning_rate)
 
-    opt = tf.compat.v1.train.experimental.enable_mixed_precision_graph_rewrite(
-        opt, loss_scale='dynamic')
-
     if accumulate_gradients > 1:
         if use_memory_saving_gradients:
             exit(
@@ -234,11 +231,15 @@ def finetune(sess,
         opt = AccumulatingOptimizer(
             opt=opt,
             var_list=train_vars)
+        opt = tf.compat.v1.train.experimental.enable_mixed_precision_graph_rewrite(
+            opt, loss_scale='dynamic')
         opt_reset = opt.reset()
         opt_compute = opt.compute_gradients(loss)
         opt_apply = opt.apply_gradients()
         summary_loss = tf.compat.v1.summary.scalar('loss', opt_apply)
     else:
+        opt = tf.compat.v1.train.experimental.enable_mixed_precision_graph_rewrite(
+            opt, loss_scale='dynamic')
         if use_memory_saving_gradients:
             opt_grads = memory_saving_gradients.gradients(loss, train_vars)
         else:
