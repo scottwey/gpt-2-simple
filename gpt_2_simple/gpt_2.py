@@ -51,7 +51,8 @@ def download_file_with_progress(url_base, sub_dir, model_name, file_name):
 
     # set to download 1MB at a time. This could be much larger with no issue
     DOWNLOAD_CHUNK_SIZE = 1024 * 1024
-    r = requests.get(url_base + "/models/" + model_name + "/" + file_name, stream=True)
+    r = requests.get(url_base + "/models/" + model_name +
+                     "/" + file_name, stream=True)
     with open(os.path.join(sub_dir, file_name), 'wb') as f:
         file_size = int(r.headers["content-length"])
         with tqdm(ncols=100, desc="Fetching " + file_name,
@@ -59,7 +60,7 @@ def download_file_with_progress(url_base, sub_dir, model_name, file_name):
             for chunk in r.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
                 pbar.update(DOWNLOAD_CHUNK_SIZE)
-   
+
 
 def download_gpt2(model_dir='models', model_name='124M'):
     """Downloads the GPT-2 model into the current directory
@@ -100,13 +101,14 @@ def start_tf_sess(threads=-1, server=None):
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     config.graph_options.rewrite_options.layout_optimizer = rewriter_config_pb2.RewriterConfig.OFF
+    config.graph_options.rewrite_options.auto_mixed_precision = rewriter_config_pb2.RewriterConfig.ON
     if threads > 0:
         config.intra_op_parallelism_threads = threads
         config.inter_op_parallelism_threads = threads
 
     if server is not None:
         return tf.compat.v1.Session(target=server.target, config=config)
-    
+
     return tf.compat.v1.Session(config=config)
 
 
@@ -120,9 +122,11 @@ def reset_session(sess, threads=-1, server=None):
     sess = start_tf_sess(threads, server)
     return sess
 
+
 def get_available_gpus():
     local_device_protos = device_lib.list_local_devices()
     return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
 
 def finetune(sess,
              dataset,
@@ -153,7 +157,8 @@ def finetune(sess,
     See that file for parameter definitions.
     """
 
-    assert model_name not in ['774M', '1558M'] or multi_gpu, "Currently, a modern single GPU cannot finetune the 774M GPT-2 model or larger."
+    assert model_name not in [
+        '774M', '1558M'] or multi_gpu, "Currently, a modern single GPU cannot finetune the 774M GPT-2 model or larger."
 
     SAMPLE_DIR = 'samples'
 
@@ -208,17 +213,21 @@ def finetune(sess,
         temperature=1.0,
         top_k=40)
 
-    all_vars = [v for v in tf.compat.v1.trainable_variables() if 'model' in v.name]
-    train_vars = [v for v in all_vars if '/h' in v.name] if only_train_transformer_layers else all_vars
+    all_vars = [v for v in tf.compat.v1.trainable_variables()
+                if 'model' in v.name]
+    train_vars = [
+        v for v in all_vars if '/h' in v.name] if only_train_transformer_layers else all_vars
 
     if optimizer == 'adam':
         opt = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
     elif optimizer == 'sgd':
-        opt = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=learning_rate)
+        opt = tf.compat.v1.train.GradientDescentOptimizer(
+            learning_rate=learning_rate)
 
     if accumulate_gradients > 1:
         if use_memory_saving_gradients:
-            exit("Memory saving gradients are not implemented for gradient accumulation yet.")
+            exit(
+                "Memory saving gradients are not implemented for gradient accumulation yet.")
         opt = AccumulatingOptimizer(
             opt=opt,
             var_list=train_vars)
@@ -319,7 +328,7 @@ def finetune(sess,
 
     if steps:
         steps = int(steps)
-    
+
     try:
         while True:
             if steps > 0 and counter == (counter_base + steps):
@@ -468,8 +477,8 @@ def generate(sess,
             out = sess.run(output)
         else:
             out = sess.run(output, feed_dict={
-                    context: batch_size * [context_tokens]
-                })
+                context: batch_size * [context_tokens]
+            })
         for i in range(batch_size):
             generated += 1
             gen_text = enc.decode(out[i])
@@ -554,7 +563,8 @@ def mount_gdrive():
 
 def is_mounted():
     """Checks if the Google Drive is mounted."""
-    assert os.path.isdir('/content/drive'), "You must mount first using mount_gdrive()"
+    assert os.path.isdir(
+        '/content/drive'), "You must mount first using mount_gdrive()"
 
 
 def get_tarfile_name(checkpoint_folder):
@@ -571,7 +581,8 @@ def copy_checkpoint_to_gdrive(run_name='run1', copy_folder=False):
     checkpoint_folder = os.path.join('checkpoint', run_name)
 
     if copy_folder:
-        shutil.copytree(checkpoint_folder, "/content/drive/My Drive/" + checkpoint_folder)
+        shutil.copytree(checkpoint_folder,
+                        "/content/drive/My Drive/" + checkpoint_folder)
     else:
         file_path = get_tarfile_name(checkpoint_folder)
 
@@ -589,7 +600,8 @@ def copy_checkpoint_from_gdrive(run_name='run1', copy_folder=False):
     checkpoint_folder = os.path.join('checkpoint', run_name)
 
     if copy_folder:
-        shutil.copytree("/content/drive/My Drive/" + checkpoint_folder, checkpoint_folder)
+        shutil.copytree("/content/drive/My Drive/" +
+                        checkpoint_folder, checkpoint_folder)
     else:
         file_path = get_tarfile_name(checkpoint_folder)
 
@@ -665,7 +677,7 @@ def cmd():
     )
 
     # Explicit arguments
-    
+
     parser.add_argument(
         '--mode', help='Mode for using the CLI (either "finetune" or "generate") [Required]', nargs='?')
     parser.add_argument(
@@ -750,7 +762,8 @@ def cmd():
     parser.add_argument('dataset', nargs='?')
 
     args = parser.parse_args()
-    assert args.mode in ['finetune', 'generate'], "Mode must be 'finetune' or 'generate'"
+    assert args.mode in ['finetune',
+                         'generate'], "Mode must be 'finetune' or 'generate'"
 
     if args.mode == 'finetune':
         assert args.dataset is not None, "You need to provide a dataset."
@@ -810,7 +823,8 @@ def cmd_generate(nfiles, nsamples, folder,
     """
 
     sess = start_tf_sess()
-    load_gpt2(sess, run_name=run_name, checkpoint_dir=checkpoint_dir, multi_gpu=multi_gpu)
+    load_gpt2(sess, run_name=run_name,
+              checkpoint_dir=checkpoint_dir, multi_gpu=multi_gpu)
 
     try:
         os.mkdir(folder)
@@ -820,7 +834,7 @@ def cmd_generate(nfiles, nsamples, folder,
 
     for _ in trange(nfiles):
         gen_file = os.path.join(folder,
-                    'gpt2_gentext_{:%Y%m%d_%H%M%S}.txt'.format(datetime.utcnow()))
+                                'gpt2_gentext_{:%Y%m%d_%H%M%S}.txt'.format(datetime.utcnow()))
 
         generate_to_file(sess,
                          run_name=run_name,
